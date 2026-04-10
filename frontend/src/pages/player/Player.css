@@ -1,0 +1,95 @@
+.player-page {
+  padding: 20px;
+}
+
+.player-container {
+  width: 100%;
+  background: #000000;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.video-player {
+  width: 100%;
+  display: block;
+  max-height: calc(100vh - 200px);
+}
+
+.player-sidebar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.points-card, .progress-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.points-card h3, .progress-card h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  color: #1a1a1a;
+}
+
+.points-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1890ff;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.points-daily {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.points-cap-reached {
+  background: #fff7e6;
+  color: #fa8c16;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1890ff, #52c41a);
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.loading-indicator {
+  background: #e6f7ff;
+  color: #1890ff;
+  padding: 12px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .player-sidebar {
+    grid-template-columns: 1fr;
+  }
+}

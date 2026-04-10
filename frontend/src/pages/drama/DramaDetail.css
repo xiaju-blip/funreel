@@ -1,0 +1,122 @@
+.drama-detail-page {
+  padding-top: 40px;
+}
+
+.drama-header {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.drama-cover {
+  position: relative;
+}
+
+.drama-cover img {
+  width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+.vip-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 60;
+}
+
+.drama-info h1 {
+  margin: 0 0 16px;
+  font-size: 28px;
+  color: #1a1a1a;
+}
+
+.drama-info .description {
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+
+.meta-row {
+  display: flex;
+  gap: 24px;
+}
+
+.meta-item {
+  color: #666;
+  font-size: 14px;
+}
+
+.episodes-list {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0, 0.08);
+}
+
+.episodes-list h2 {
+  margin: 0 0 24px;
+  font-size: 20px;
+  color: #1a1a1a;
+}
+
+.episodes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.episode-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.episode-card:hover {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+.episode-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1890ff;
+  margin-bottom: 4px;
+}
+
+.episode-title {
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px;
+  font-size: 16px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .drama-header {
+    grid-template-columns: 1fr;
+  }
+
+  .episodes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
