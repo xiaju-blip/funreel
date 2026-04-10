@@ -14,7 +14,7 @@ import { InviteModule } from '../invite/invite.module';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'default-secret',
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN as any || '7d' },
     }),
     InviteModule,
   ],

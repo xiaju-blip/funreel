@@ -16,7 +16,6 @@ const Player = () => {
   const [loading, setLoading] = useState(false);
   const [deviceFingerprint, setDeviceFingerprint] = useState('');
   const playerRef = useRef<HTMLVideoElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 初始化设备指纹
   useEffect(() => {
@@ -29,14 +28,16 @@ const Player = () => {
 
   // 监听视频时间更新
   const handleTimeUpdate = () => {
-    if (!playerRef.current) return;
-    setCurrentTime(playerRef.current.currentTime);
+    if (playerRef.current) {
+      setCurrentTime(playerRef.current.currentTime);
+    }
   };
 
   // 视频加载完成
   const handleLoadedMetadata = () => {
-    if (!playerRef.current) return;
-    setDuration(playerRef.current.duration);
+    if (playerRef.current) {
+      setDuration(playerRef.current.duration);
+    }
   };
 
   // 视频播放结束
@@ -62,7 +63,6 @@ const Player = () => {
         setCurrentPoints(prev => prev + response.points);
         setTodayPoints(prev => prev + response.points);
       } else {
-        // 被防刷拦截
         console.warn('Watch event blocked:', response.error);
       }
     } catch (e) {
@@ -71,22 +71,6 @@ const Player = () => {
       setLoading(false);
     }
   };
-
-  // 定时上报观看进度（PoE积分计算）
-  useEffect(() => {
-    // 每 30 秒上报一次
-    timerRef.current = setInterval(() => {
-      if (currentTime > 0 && !isCompleted) {
-        submitWatchEvent();
-      }
-    }, 30000);
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [currentTime, isCompleted, deviceFingerprint]);
 
   // 视频结束后最终上报
   useEffect(() => {

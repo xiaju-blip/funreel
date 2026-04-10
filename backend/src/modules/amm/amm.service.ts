@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import IORedis from 'ioredis';
+import type IORedis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { AmmPool } from './entities/amm-pool.entity';
 import { AmmSwap } from './entities/amm-swap.entity';
 
@@ -14,7 +14,7 @@ export class AmmService {
   private ammSwapScript: string;
 
   constructor(
-    @InjectRedis() private readonly redis: IORedis,
+    @InjectRedis() private readonly redis: any,
     @InjectRepository(AmmPool)
     private readonly ammPoolRepository: Repository<AmmPool>,
     @InjectRepository(AmmSwap)
@@ -53,12 +53,6 @@ export class AmmService {
   ): Promise<any> {
     const poolKey = `amm:pool:${poolId}:reserves`;
     
-    // 同步Redis储备量 - 启动时和定期同步保证一致性
-    const pool = await this.getPool(poolId);
-    if (!pool) {
-      return { success: false, error: 'POOL_NOT_FOUND' };
-    }
-
     // 执行Lua脚本
     const result = await this.redis.eval(
       this.ammSwapScript,
@@ -139,7 +133,8 @@ export class AmmService {
   async persistSwapRecords(count: number = 100): Promise<number> {
     const streamKey = 'amm:swap:queue';
     const result = await this.redis.xreadgroup(
-      'GROUP', 'persistence',
+      'GROUP',
+      'persistence',
       'consumer-1',
       'COUNT',
       count,
@@ -147,16 +142,16 @@ export class AmmService {
       0,
       'STREAMS',
       streamKey,
-      '>',
+      '$',
     );
 
-    if (!result || result.length === 0) {
+    if (!result || typeof result !== 'object' || (result as any).length === 0) {
       return 0;
     }
 
     let persisted = 0;
 
-    for (const [stream, messages] of result) {
+    for (const [stream, messages] of result as Array<[string, Array<[string, string[]]>]>) {
       for (const [id, fields] of messages) {
         const swap = this.parseSwapMessage(fields);
         await this.ammSwapRepository.save(swap);
@@ -184,7 +179,7 @@ export class AmmService {
     swap.amountOut = parseFloat(data.amount_out);
     swap.price = parseFloat(data.price);
     swap.fee = parseFloat(data.fee);
-    swap.slippage = 0; // 可后续计算
+    swap.slippage = 0;
 
     return swap;
   }

@@ -64,9 +64,9 @@ export class WatchService {
       return {device_cnt, ip_cnt}
     `;
 
-    const result = await this.redis.eval(luaScript, 2, deviceKey, ipKey);
-    const deviceCnt = result[0] as number;
-    const ipCnt = result[1] as number;
+    const result = await this.redis.eval(luaScript, 2, deviceKey, ipKey) as [number, number];
+    const deviceCnt = result[0];
+    const ipCnt = result[1];
 
     // 同一剧集同一设备/IP每日最多5次有效积分
     if (deviceCnt > 5 || ipCnt > 5) {

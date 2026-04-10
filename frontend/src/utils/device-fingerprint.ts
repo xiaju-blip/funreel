@@ -38,9 +38,6 @@ export async function generateDeviceFingerprint(): Promise<string> {
   // 6. 时区
   components.push('t:' + new Date().getTimezoneOffset());
 
-  // 7. UserAgent
-  components.push('ua:' + MurmurHash3(navigator.userAgent, 42));
-
   const rawFingerprint = components.join('|');
   return MurmurHash3(rawFingerprint, 42).toString(16);
 }
@@ -58,7 +55,6 @@ function generateCanvasFingerprint(): number {
   ctx.fillText('FunReelRWA, Inc. <3', 2, 15);
   ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
   ctx.fillText('FunReelRWA, Inc. <3', 4, 17);
-
   return MurmurHash3(ctx.canvas.toDataURL(), 42);
 }
 
@@ -73,7 +69,6 @@ function generateWebGLFingerprint(): number | null {
     const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
     return MurmurHash3(vendor + '|' + renderer, 42);
   }
-
   return null;
 }
 
@@ -83,7 +78,6 @@ function generateFontFingerprint(): number {
   const testString = 'mmmmmmmmmmlli';
   const testSize = '72px';
   const span = document.createElement('span');
-
   span.style.fontSize = testSize;
   span.style.position = 'absolute';
   span.style.left = '-9999px';
@@ -111,5 +105,3 @@ async function generateAudioFingerprint(): Promise<number> {
   const rendered = await audioCtx.startRendering();
   return MurmurHash3(rendered.getChannelData(0).slice(0, 1000).toString(), 42);
 }
-
-export default generateDeviceFingerprint;

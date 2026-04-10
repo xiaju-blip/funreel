@@ -105,7 +105,7 @@ export class StakeService {
       // 创建新质押记录
       const lockEndTime = pool.lockDays > 0
         ? new Date(Date.now() + pool.lockDays * 24 * 60 * 60 * 1000)
-        : null;
+        : undefined;
 
       const effectiveApy = this.calculateEffectiveApy(pool.baseApy, vipLevel);
       

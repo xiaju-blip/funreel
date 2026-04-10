@@ -10,9 +10,9 @@ import { UserTokensService } from '../tokens/user-tokens.service';
 export class InviteService {
   constructor(
     @InjectRepository(InviteRecord)
-  private readonly inviteRecordRepository: Repository<InviteRecord>,
+    private readonly inviteRecordRepository: Repository<InviteRecord>,
     @InjectRepository(User)
-  private readonly userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
     private readonly pointsService: PointsService,
     private readonly userTokensService: UserTokensService,
   ) {}
@@ -31,36 +31,11 @@ export class InviteService {
     await this.recordInviteReward(inviter.id, newUserId, 1, 'register', 50, 10);
 
     // 如果有上级邀请人（二级）
-    if (inviter.inviterId) {
+    if (inviter.inviterId && inviter.inviterId > 0) {
       await this.recordInviteReward(inviter.inviterId, newUserId, 2, 'register', 50, 0);
     }
 
     return true;
-  }
-
-  /**
-   * 记录邀请奖励
-   */
-  private async recordInviteReward(
-    inviterId: number, inviteeId: number, level: number, eventType: string, points: number, token: number) {
-    const record = this.inviteRecordRepository.create({
-      inviterId,
-      inviteeId,
-      level,
-      eventType,
-      rewardPoints: points,
-      rewardToken: token,
-      status: 1, // 立即发放注册奖励
-    });
-    await this.inviteRecordRepository.save(record);
-
-    // 发放奖励
-    if (points > 0) {
-      await this.pointsService.addPoints(inviterId, points, 6, `invite_${eventType}_${inviteeId}`);
-    }
-    if (token > 0) {
-      await this.userTokensService.addReward(inviterId, token, 'invite', null);
-    }
   }
 
   /**
@@ -85,6 +60,32 @@ export class InviteService {
 
     if (amount >= 100) {
       await this.recordInviteReward(invitee.inviterId, inviteeId, 1, 'first_invest', 0, 50);
+    }
+  }
+
+  /**
+   * 记录邀请奖励
+   */
+  private async recordInviteReward(
+    inviterId: number, inviteeId: number, level: number, eventType: string, points: number, token: number,
+  ) {
+    const record = this.inviteRecordRepository.create({
+      inviterId,
+      inviteeId,
+      level,
+      eventType,
+      rewardPoints: points,
+      rewardToken: token,
+      status: 1, // 立即发放注册奖励
+    });
+    await this.inviteRecordRepository.save(record);
+
+    // 发放奖励
+    if (points > 0) {
+      await this.pointsService.addPoints(inviterId, points, 6, `invite_${eventType}_${inviteeId}`);
+    }
+    if (token > 0) {
+      await this.userTokensService.addReward(inviterId, token, 'invite', undefined);
     }
   }
 
@@ -123,14 +124,14 @@ export class InviteService {
   }
 
   /**
-   * 获取邀请明细
+   * 获取我的邀请明细
    */
   async getMyRecords(userId: number, page: number = 1, limit: number = 20) {
     const query = this.inviteRecordRepository
       .createQueryBuilder()
       .where('inviterId = :userId', { userId })
       .orderBy('createdAt', 'DESC')
-      .skip((page - 1) * limit
+      .skip((page - 1) * limit)
       .take(limit);
 
     const [records, total] = await query.getManyAndCount();

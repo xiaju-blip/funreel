@@ -73,7 +73,7 @@ export class DeviceFingerprintService {
     const record = await this.deviceFingerprintRepository.findOneBy({
       fingerprintHash: fingerprint,
     });
-    return record?.riskLevel >= 3 || false;
+    return (record?.riskLevel || 0) >= 3;
   }
 
   /**
@@ -85,7 +85,7 @@ export class DeviceFingerprintService {
     });
     
     if (record) {
-      record.riskLevel += points;
+      record.riskLevel = (record.riskLevel || 0) + points;
       await this.deviceFingerprintRepository.save(record);
     }
   }
@@ -101,6 +101,6 @@ export class DeviceFingerprintService {
       .select('COUNT(DISTINCT df.userId)', 'count')
       .getRawOne();
     
-    return parseInt(count.count, 10);
+    return parseInt(count.count || '0', 10);
   }
 }

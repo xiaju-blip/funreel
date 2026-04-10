@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { UserInfo } from '../api/auth';
+import type { UserInfo } from '../api/auth';
 
 interface UserState {
   user: UserInfo | null;
@@ -10,7 +10,7 @@ interface UserState {
   updateLanguage: (language: string) => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>()((set) => ({
   user: null,
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
@@ -21,18 +21,29 @@ export const useUserStore = create<UserState>((set) => ({
     } else {
       localStorage.removeItem('token');
     }
-    set({ user, token, isAuthenticated: !!token });
+    set({
+      user,
+      token,
+      isAuthenticated: !!token,
+    });
   },
 
   logout: () => {
     localStorage.removeItem('token');
-    set({ user: null, token: null, isAuthenticated: false });
+    set({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+    });
   },
 
   updateLanguage: (language) => {
     set((state) => ({
       ...state,
-      user: state.user ? { ...state.user, language } : null,
+      user: state.user ? {
+        ...state.user,
+        language,
+      } : null,
     }));
   },
 }));

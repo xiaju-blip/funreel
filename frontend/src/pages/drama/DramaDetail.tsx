@@ -15,7 +15,7 @@ interface Drama {
   id: number;
   title: { zh: string; en: string };
   description: { zh: string; en: string };
-  cover: string;
+  coverImage: string;
   vipLevel: number;
   totalEpisodes: number;
 }
@@ -32,8 +32,8 @@ const DramaDetail = () => {
     const fetchData = async () => {
       try {
         const [detailRes, episodesRes] = await Promise.all([
-          getDramaDetail(parseInt(id)),
-          getEpisodes(parseInt(id)),
+          getDramaDetail(parseInt(id as string)),
+          getEpisodes(parseInt(id as string)),
         ]);
         setDrama(detailRes.data);
         setEpisodes(episodesRes.data);
@@ -64,7 +64,7 @@ const DramaDetail = () => {
     <div className="container drama-detail-page">
       <div className="drama-header">
         <div className="drama-cover">
-          <img src={drama.cover || '/default-drama.jpg'} alt={currentLang === 'zh' ? drama.title.zh : drama.title.en} />
+          <img src={drama.coverImage || '/default-drama.jpg'} alt={currentLang === 'zh' ? drama.title.zh : drama.title.en} />
           {drama.vipLevel > 0 && (
             <div className="vip-badge">VIP {drama.vipLevel}</div>
           )}
@@ -72,7 +72,7 @@ const DramaDetail = () => {
         <div className="drama-info">
           <h1>{currentLang === 'zh' ? drama.title.zh : drama.title.en}</h1>
           <p className="description">
-            {currentLang === 'zh' ? drama.description.zh : drama.description.en}
+            {currentLang === 'zh' ? (drama.description as any).zh : (drama.description as any).en}
           </p>
           <div className="meta-row">
             <span className="meta-item">

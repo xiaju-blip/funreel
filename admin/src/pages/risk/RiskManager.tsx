@@ -40,7 +40,7 @@ const RiskManager = () => {
     return { text: 'High', color: 'red' };
   };
 
-  const columns: Columns<RiskEvent> = [
+  const columns: ColumnsType<RiskEvent> = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
     { title: t('risk:userId') || 'User ID', dataIndex: 'userId', key: 'userId', width: 80 },
     { title: t('risk:reason') || 'Reason', dataIndex: 'reason', key: 'reason' },

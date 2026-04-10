@@ -17,7 +17,7 @@ export class ChainSyncService {
     @InjectRepository(TokenTransaction)
     private readonly tokenTransactionRepository: Repository<TokenTransaction>,
   ) {
-    const rpcUrl = process.env.ETHEREUM_RPC_URL || 'https://mainnet.infura.io/v3/your-key';
+    const rpcUrl = process.env.ETHEREUM_RPC_URL || 'https://mainnet.infura.io/v3/your-infura-key';
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
   }
 
@@ -81,7 +81,7 @@ export class ChainSyncService {
     await this.tokenTransactionRepository
       .createQueryBuilder()
       .update(TokenTransaction)
-      .set({ status: 0 }) // 0=无效
+      .set({ status: 0 })
       .where('blockNumber > :blockNumber', { blockNumber })
       .execute();
   }
@@ -101,8 +101,8 @@ export class ChainSyncService {
 
     // 检查是否发生重组
     if (await this.isReorgDetected(blockNumber, log.blockHash)) {
-      await this.rollbackTransactionsAfter(blockNumber - 12);
-      this.logger.warn(`Block reorganization detected, rolled back after ${blockNumber - 12}`);
+      await this.rollbackTransactionsAfter(blockNumber - this.requiredConfirmations);
+      this.logger.warn(`Block reorganization detected, rolled back after ${blockNumber - this.requiredConfirmations}`);
     }
 
     // 处理事件
@@ -120,13 +120,18 @@ export class ChainSyncService {
   private async saveTransaction(log: ethers.Log): Promise<void> {
     // 解析Transfer事件
     // 这里简化处理，实际需要根据ABI解析
+    const amount = ethers.getBigInt(log.data);
+    const from = log.topics[1];
+    const to = log.topics[2];
+    
     const tx = this.tokenTransactionRepository.create({
-      blockNumber: log.blockNumber,
+      userId: 0,
+      type: 3, // 质押收益，实际需要识别
+      amount: Number(amount),
+      balanceAfter: 0,
       txHash: log.transactionHash,
-      from: log.topics[1],
-      to: log.topics[2],
-      value: log.data,
       status: 1, // 1=有效
+      blockNumber: log.blockNumber,
     });
     await this.tokenTransactionRepository.save(tx);
     this.logger.log(`Processed transfer transaction ${log.transactionHash}`);
@@ -150,11 +155,13 @@ export class ChainSyncService {
     // 比对每个交易在链上是否存在
     for (const tx of localTransactions) {
       try {
-        const receipt = await this.provider.getTransactionReceipt(tx.txHash);
-        if (!receipt || receipt.status !== 1) {
-          inconsistencies.push(tx.txHash);
-          tx.status = 0;
-          await this.tokenTransactionRepository.save(tx);
+        if (tx.txHash) {
+          const receipt = await this.provider.getTransactionReceipt(tx.txHash);
+          if (!receipt || receipt.status !== 1) {
+            inconsistencies.push(tx.txHash);
+            tx.status = 0;
+            await this.tokenTransactionRepository.save(tx);
+          }
         }
       } catch (e) {
         this.logger.error(`Failed to verify transaction ${tx.txHash}`, e);
@@ -181,6 +188,9 @@ export class ChainSyncService {
     }, 15000); // 每15秒检查一次
   }
 
+  /**
+   * 同步新确认区块
+   */
   private async syncNewBlocks(): Promise<void> {
     const checkpoint = await this.getCheckpoint(1);
     const currentBlock = await this.provider.getBlockNumber();
@@ -188,13 +198,12 @@ export class ChainSyncService {
     const toBlock = currentBlock - this.requiredConfirmations;
 
     if (fromBlock > toBlock) {
-      return; // 没有新的确认块
+      return; // 没有新确认的块
     }
 
     this.logger.log(`Syncing blocks from ${fromBlock} to ${toBlock}`);
 
     // 获取Transfer事件日志
-    // 这里需要配置contract address和event topic
     const filter = {
       address: process.env.REEL_TOKEN_ADDRESS as string,
       topics: [ethers.id('Transfer(address,address,uint256)')],
@@ -210,6 +219,13 @@ export class ChainSyncService {
 
     if (logs.length > 0) {
       this.logger.log(`Synced ${logs.length} new transfer events`);
+    }
+
+    if (checkpoint) {
+      const block = await this.provider.getBlock(toBlock);
+      if (block?.hash) {
+        await this.updateCheckpoint(1, toBlock, block.hash);
+      }
     }
   }
 }

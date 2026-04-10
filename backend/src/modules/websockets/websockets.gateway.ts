@@ -1,5 +1,5 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
-import { Server, WebSocket } from 'ws';
+import { Server } from 'ws';
 import { Logger } from '@nestjs/common';
 
 /**
@@ -39,10 +39,9 @@ class DepthThrottler {
       channel,
       data,
     });
-    
     // 广播给所有订阅这个channel的连接
-    this.server.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN && client.subscriptions?.has(channel)) {
+    this.server.clients.forEach((client: any) => {
+      if (client.readyState === 1 && client.subscriptions?.has(channel)) {
         client.send(message);
       }
     });
@@ -128,8 +127,8 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
       data: trade,
     });
 
-    this.server.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN && client.subscriptions?.has(channel)) {
+    this.server.clients.forEach((client: any) => {
+      if (client.readyState === 1 && client.subscriptions?.has(channel)) {
         client.send(message);
       }
     });
@@ -146,8 +145,8 @@ export class WebsocketsGateway implements OnGatewayConnection, OnGatewayDisconne
       data: { price },
     });
 
-    this.server.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN && client.subscriptions?.has(channel)) {
+    this.server.clients.forEach((client: any) => {
+      if (client.readyState === 1 && client.subscriptions?.has(channel)) {
         client.send(message);
       }
     });

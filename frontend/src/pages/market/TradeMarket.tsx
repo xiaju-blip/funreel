@@ -39,7 +39,6 @@ const TradeMarket = () => {
     fetchPools();
   }, []);
 
-  // 计算预期输出（恒定乘积）
   useEffect(() => {
     if (!selectedPool || !amountIn || parseFloat(amountIn) <= 0) {
       setExpectedOut(0);
@@ -65,7 +64,7 @@ const TradeMarket = () => {
       ? selectedPool.reserveBase / selectedPool.reserveIpt
       : selectedPool.reserveIpt / selectedPool.reserveBase;
     const executionPrice = amount / out;
-    const impact = Math.abs((executionPrice - spotPrice) / spotPrice * 100);
+    const impact = Math.abs(((executionPrice - spotPrice) / spotPrice) * 100);
     setPriceImpact(impact);
 
     // 设置最小输出（滑点保护，默认 0.5%）
@@ -76,26 +75,18 @@ const TradeMarket = () => {
   const handleSwap = async () => {
     if (!selectedPool || !amountIn || !minOut) return;
     setLoading(true);
-
     try {
       const result = await ammSwap(
         selectedPool.id,
         direction,
         parseFloat(amountIn),
-        parseFloat(minOut)
+        parseFloat(minOut),
       );
-
       if (result.success) {
-        // 刷新池子数据
-        // 成功后重置输入
-        setAmountIn('');
-        alert(`${t('trade:swapSuccess') || 'Swap succeeded'}! ${result.amountOut} received`);
+        alert(`${t('trade:swapSuccess') || 'Swap succeeded'}! ${result.amountOut.toFixed(6)} received${direction === 'buy_ipt' ? ' IPT' : ` ${selectedPool.baseToken}`}`);
       } else {
         alert(`${t('trade:swapFailed') || 'Swap failed'}: ${result.error}`);
       }
-    } catch (e) {
-      console.error('Swap failed', e);
-      alert('Swap failed');
     } finally {
       setLoading(false);
     }
@@ -124,7 +115,9 @@ const TradeMarket = () => {
 
         {selectedPool && (
           <div className="swap-card">
-            <h2>{selectedPool.assetName} - {selectedPool.baseToken}</h2>
+            <h2>
+              {selectedPool.assetName} - {selectedPool.baseToken}
+            </h2>
 
             <div className="direction-selector">
               <button
@@ -145,15 +138,14 @@ const TradeMarket = () => {
               <label>
                 {direction === 'buy_ipt'
                   ? `${selectedPool.baseToken} ${t('trade:amountIn') || 'Amount In'}`
-                  : `IPT ${t('trade:amountIn') || 'Amount In'}`
-                }
+                  : `IPT ${t('trade:amountIn') || 'Amount In'}`}
               </label>
               <input
                 type="number"
                 step="0.000001"
                 min="0"
                 value={amountIn}
-                onChange={(e) => setAmountIn(e.target.value)}
+                onChange={(e) => setAmountIn(parseFloat(e.target.value))}
                 placeholder="0.0"
               />
             </div>
@@ -174,32 +166,38 @@ const TradeMarket = () => {
               </div>
               <div className="price-row">
                 <span>{t('trade:fee') || 'Fee'}:</span>
-                <span className="value">{(selectedPool.feeRate * 100).toFixed(2)}%</span>
+                <span className="value">{selectedPool.feeRate * 100}%</span>
               </div>
             </div>
 
             <div className="input-group">
-              <label>{t('trade:minOutput') || 'Minimum Output (slippage protection)'}:</label>
+              <label>{t('trade:minOutput') || 'Minimum Output (slippage protection)'}</label>
               <input
                 type="number"
                 step="0.000001"
                 min="0"
                 value={minOut}
-                onChange={(e) => setMinOut(e.target.value)}
-                placeholder="Minimum amount you will receive"
+                onChange={(e) => setMinOut(parseFloat(e.target.value))}
               />
             </div>
 
             <button
-              className="btn btn-primary btn-block swap-button"
+              className="btn btn-primary swap-button"
               onClick={handleSwap}
               disabled={loading || !amountIn || parseFloat(amountIn) <= 0}
             >
               {loading ? (t('common:loading') || 'Processing...') : (t('trade:swap') || 'Swap')}
             </button>
           </div>
-        )}
+        </div>
+      );
+
+    return (
       </div>
+    );
+  };
+
+  return (
     </div>
   );
 };
